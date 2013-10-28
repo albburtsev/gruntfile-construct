@@ -1,0 +1,14 @@
+{
+	"node": true,
+	"smarttabs": false,
+	"eqeqeq": true,
+	"immed": true,
+	"latedef": true,
+	"newcap": true,
+	"undef": true,
+	"camelcase": true,
+	"freeze": true,
+	"newcap": true,
+	"quotmark": "single",
+	"white": false
+}

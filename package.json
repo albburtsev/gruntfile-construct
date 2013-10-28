@@ -1,0 +1,30 @@
+{
+  "name": "gruntfile-construct",
+  "version": "0.0.0",
+  "description": "Parser of gruntfiles, can be used for adding, deleting and updating grunt tasks",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/albburtsev/gruntfile-construct.git"
+  },
+  "keywords": [
+    "grunt",
+    "tools",
+    "gruntfile"
+  ],
+  "author": "Alexander Burtsev",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/albburtsev/gruntfile-construct/issues"
+  },
+  "homepage": "https://github.com/albburtsev/gruntfile-construct",
+  "devDependencies": {
+    "grunt-contrib-jshint": "~0.7.0",
+    "grunt-jscs-checker": "~0.2.2",
+    "grunt": "~0.4.1",
+    "matchdep": "~0.3.0"
+  }
+}
