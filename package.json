@@ -2,9 +2,9 @@
   "name": "gruntfile-construct",
   "version": "0.0.0",
   "description": "Parser of gruntfiles, can be used for adding, deleting and updating grunt tasks",
-  "main": "index.js",
+  "main": "gruntfile-construct.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "mocha -R spec"
   },
   "repository": {
     "type": "git",
@@ -25,6 +25,12 @@
     "grunt-contrib-jshint": "~0.7.0",
     "grunt-jscs-checker": "~0.2.2",
     "grunt": "~0.4.1",
-    "matchdep": "~0.3.0"
+    "matchdep": "~0.3.0",
+    "mocha": "~1.13.0",
+    "chai": "~1.8.1"
+  },
+  "dependencies": {
+    "escodegen": "0.0.27",
+    "esprima": "~1.0.4"
   }
 }
