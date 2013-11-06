@@ -31,6 +31,7 @@
   },
   "dependencies": {
     "escodegen": "0.0.27",
-    "esprima": "~1.0.4"
+    "esprima": "~1.0.4",
+    "lodash": "~2.2.1"
   }
 }

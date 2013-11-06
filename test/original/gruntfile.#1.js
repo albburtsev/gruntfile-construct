@@ -5,7 +5,11 @@ module.exports = function(grunt) {
 		.filterDev('grunt-*')
 		.forEach(grunt.loadNpmTasks);
 
+	/*
+	 * Multiline comment
+	 */
 	grunt.initConfig({
+		// comment
 		jshint: {
 			options: {
 				jshintrc: '.jshintrc'
