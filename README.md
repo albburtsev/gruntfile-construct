@@ -1,5 +1,4 @@
-gruntfile-construct
-===================
+# gruntfile-construct [![Build Status](https://secure.travis-ci.org/albburtsev/gruntfile-construct.png?branch=master)](https://travis-ci.org/albburtsev/gruntfile-construct)
 
 Parser of gruntfiles, can be used for adding, deleting and updating grunt tasks.
 

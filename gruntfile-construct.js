@@ -24,8 +24,9 @@ var	_ = require('lodash'),
 function Gruntfile(file, opts) {
 	file = file || this.defaultJS;
 
-	if ( !fs.existsSync(file) )
+	if ( !fs.existsSync(file) ) {
 		throw new Error('File does not exists');
+	}
 
 	// Merge options
 	_.extend(this, {
@@ -34,7 +35,7 @@ function Gruntfile(file, opts) {
 		output: null
 	}, opts || {});
 
-	// Run parser
+	// Run esprima parser
 	this.parse();
 }
 
@@ -56,6 +57,77 @@ Gruntfile.prototype =
 			loc: true,
 			tokens: true
 		});
+
+		this.detectInitCall();
+	},
+
+	/**
+	 * Detects invocation of method ```grunt.initConfig()```
+	 */
+	detectInitCall: function() {
+		var initCalls = this.findObject('', {
+			type: 'Identifier',
+			name: 'initConfig'
+		});
+
+		if ( !initCalls.length ) {
+			throw new Error('Invocation of initConfig() not found');
+		}
+
+		if ( initCalls.length > 1 ) {
+			throw new Error('Too many invocations of initConfig()');
+		}
+
+		this.initCall = initCalls[0];
+	},
+
+	/**
+	 * Recursive search in AST
+	 * @param {String} [key] Key for search
+	 * @param {Object} [fields] Hash with fields for search
+	 */
+	findObject: function(key, fields, tree, result) {
+		// @todo: http://goessner.net/articles/JsonPath/
+
+		tree = tree || this.tree;
+		result = result || [];
+
+		if ( !key && !fields ) {
+			return result;
+		}
+
+		_.each(tree, function(nestedValue, nestedKey) {
+			// Nested value is not object
+			if ( !_.isObject(nestedValue) ) {
+				return;
+			}
+
+			// Nested value is element of array
+			if ( !nestedKey ) {
+				this.findObject(key, fields, nestedValue, result);
+
+			// Nested value is real object
+			} else {
+				if ( key && nestedKey !== key ) {
+					this.findObject(key, fields, nestedValue, result);
+				}
+
+				// Comparison with given fields
+				var finded = true;
+				_.each(fields, function(fieldValue, fieldKey) {
+					if ( nestedValue[fieldKey] !== fieldValue )
+						finded = false;
+				});
+
+				if ( finded ) {
+					result.push(nestedValue);
+				} else {
+					this.findObject(key, fields, nestedValue, result);
+				}
+			}
+		}.bind(this));
+
+		return result;
 	},
 
 	/**
@@ -64,18 +136,6 @@ Gruntfile.prototype =
 	 */
 	save: function(output) {
 		output = output || this.output || this.file;
-
-		/*
-		this.tree = escodegen.attachComments(this.tree, this.tree.comments, this.tree.tokens);
-		var code = escodegen.generate(this.tree, {
-			comment: true,
-			format: {
-				indent: {
-					adjustMultilineComment: true
-				}
-			}
-		});
-		*/
 
 		// @todo
 
