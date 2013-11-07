@@ -23,20 +23,33 @@ describe('Handling errors', function() {
 
 describe('Correct parsing', function() {
 
-	it('Correct properties of instance', function() {
+	it('Correct parsing from esprima', function() {
 		var gruntfile = new gfc.Gruntfile('test/original/gruntfile.#1.js');
 
-		// Esprima parser
 		expect(gruntfile.file).to.be.a('string');
 		expect(gruntfile.source).to.be.a('string');
 		expect(gruntfile.tree).to.be.a('object');
 		expect(gruntfile.tree).to.be.a('object');
 		expect(gruntfile.tree).to.have.property('type', 'Program');
+	});
 
-		// Detects initConfig() call
+	it('Traversal: detect initConfig() call', function() {
+		var gruntfile = new gfc.Gruntfile('test/original/gruntfile.#1.js');
+
 		expect(gruntfile._initCall).to.be.a('object');
-		expect(gruntfile._initCallPath).to.be.a('string');
+		expect(gruntfile._initCallPath).to.be.a('object');
 		expect(gruntfile._initCall.loc.start.line).to.equal(11);
+	});
+
+	it('Traversal: detect config object', function() {
+		var gruntfile = new gfc.Gruntfile('test/original/gruntfile.#1.js'),
+			gruntfile2 = new gfc.Gruntfile('test/original/gruntfile.#2.js');
+
+		expect(gruntfile._configObject).to.be.a('object');
+		expect(gruntfile._configObject.loc.start.line).to.equal(11);
+		
+		expect(gruntfile2._configObject).to.be.a('object');
+		expect(gruntfile2._configObject.loc.start.line).to.equal(11);
 	});
 
 	it('Gruntfile without grunt.initConfig()', function() {

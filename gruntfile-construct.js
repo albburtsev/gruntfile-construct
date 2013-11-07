@@ -12,7 +12,7 @@ var	_ = require('lodash'),
 	path = require('path'),
 	esprima = require('esprima'),
 	escodegen = require('escodegen'),
-	jsonpath = require('JSONPath').eval;
+	traverse = require('ast-types').traverse;
 
 /**
  * Entry point, main class for patching gruntfile
@@ -35,8 +35,10 @@ function Gruntfile(file, opts) {
 		source: fs.readFileSync(file, 'utf8'),
 		output: null,
 
-		_initCall: null, // JSON
-		_initCallPath: '' // JSONPath
+		_initCall: null, // part of AST, JSON
+		_initCallPath: '',
+		_configObject: null, // part of AST, JSON
+		_configObjectPath: ''
 	}, opts || {});
 
 	// Run esprima parser
@@ -61,23 +63,20 @@ Gruntfile.prototype =
 		});
 
 		this.detectInitCall();
+		this.detectConfig();
 	},
 
 	/**
-	 * Detects invocation of method ```grunt.initConfig()```
-	 * @see [JSONPath](http://goessner.net/articles/JsonPath/)
+	 * Detects invocation of method ```grunt.initConfig()``` (traversal AST)
 	 */
 	detectInitCall: function() {
-		var	treeProperties = jsonpath(this.tree, '$..property'),
-			treePropertiesPath = jsonpath(this.tree, '$..property', { resultType: 'PATH' }),
-			initCalls = [];
+		var initCalls = [];
 
-		for (var i = treeProperties.length, property; i--;) {
-			property = treeProperties[i];
-			if ( property.name === 'initConfig' ) {
-				initCalls.push([property, treePropertiesPath[i]]);
+		traverse(this.tree, function(node) {
+			if ( node.name === 'initConfig' ) {
+				initCalls.push([node, this]);
 			}
-		}
+		});
 
 		if ( !initCalls.length ) {
 			throw new Error('Invocation of initConfig() not found');
@@ -92,52 +91,51 @@ Gruntfile.prototype =
 	},
 
 	/**
-	 * @ignore
-	 * Recursive search in AST (unused)
-	 * @param {String} [key] Key for search
-	 * @param {Object} [fields] Hash with fields for search
+	 * Detects config object (traversal AST)
 	 */
-	findObject: function(key, fields, tree, result) {
-		// @todo: http://goessner.net/articles/JsonPath/
+	detectConfig: function() {
+		var callExpressionPath = this.parentPath(this._initCallPath, 'CallExpression'),
+			callExpression = callExpressionPath.node;
 
-		tree = tree || this.tree;
-		result = result || [];
-
-		if ( !key && !fields ) {
-			return result;
+		if ( !callExpression.arguments || !callExpression.arguments.length ) {
+			throw new Error('AST traversal error, arguments of initConfig() not found');
 		}
 
-		_.each(tree, function(nestedValue, nestedKey) {
-			if ( !_.isObject(nestedValue) ) {
-				return;
+		var configObject = callExpression.arguments[0];
+
+		switch (configObject.type) {
+			case 'ObjectExpression':
+				// All right, do nothing
+				break;
+
+			case 'Identifier':
+				// @todo
+				break;
+
+			default:
+				throw new Error('Unknown type of config object');
+				break;
+		}
+
+		this._configObject = configObject;
+	},
+
+	/**
+	 * Iterates parents for given path and returns needed
+	 * @param {Object} path Source path
+	 * @param {String} [parent] Type of needed parent
+	 */
+	parentPath: function(path, parent) {
+		if ( !parent ) {
+			return path.parent;
+		}
+
+		while (path.parent) {
+			path = path.parent;
+			if ( path.node.type === parent ) {
+				return path;
 			}
-
-			// Nested value is element of array
-			if ( !nestedKey ) {
-				this.findObject(key, fields, nestedValue, result);
-
-			// Nested value is real object
-			} else {
-				if ( key && nestedKey !== key ) {
-					this.findObject(key, fields, nestedValue, result);
-				}
-
-				// Comparison with given fields
-				var found = true;
-				_.each(fields, function(fieldValue, fieldKey) {
-					if ( nestedValue[fieldKey] !== fieldValue )
-						found = false;
-				});
-
-				if ( found ) {
-					result.push(nestedValue);
-				} else {
-					this.findObject(key, fields, nestedValue, result);
-				}
-			}
-		}.bind(this));
-
-		return result;
+		}
 	},
 
 	/**
