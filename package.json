@@ -32,6 +32,7 @@
   "dependencies": {
     "escodegen": "0.0.27",
     "esprima": "~1.0.4",
-    "lodash": "~2.2.1"
+    "lodash": "~2.2.1",
+    "JSONPath": "~0.9.1"
   }
 }

@@ -34,8 +34,9 @@ describe('Correct parsing', function() {
 		expect(gruntfile.tree).to.have.property('type', 'Program');
 
 		// Detects initConfig() call
-		expect(gruntfile.initCall).to.be.a('object');
-		expect(gruntfile.initCall.loc.start.line).to.equal(11);
+		expect(gruntfile._initCall).to.be.a('object');
+		expect(gruntfile._initCallPath).to.be.a('string');
+		expect(gruntfile._initCall.loc.start.line).to.equal(11);
 	});
 
 	it('Gruntfile without grunt.initConfig()', function() {

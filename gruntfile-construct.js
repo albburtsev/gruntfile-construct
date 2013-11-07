@@ -11,7 +11,8 @@ var	_ = require('lodash'),
 	fs = require('fs'),
 	path = require('path'),
 	esprima = require('esprima'),
-	escodegen = require('escodegen');
+	escodegen = require('escodegen'),
+	jsonpath = require('JSONPath').eval;
 
 /**
  * Entry point, main class for patching gruntfile
@@ -32,7 +33,10 @@ function Gruntfile(file, opts) {
 	_.extend(this, {
 		file: file,
 		source: fs.readFileSync(file, 'utf8'),
-		output: null
+		output: null,
+
+		_initCall: null, // JSON
+		_initCallPath: '' // JSONPath
 	}, opts || {});
 
 	// Run esprima parser
@@ -53,9 +57,7 @@ Gruntfile.prototype =
 	parse: function() {
 		this.tree = esprima.parse(this.source, {
 			comment: true,
-			range: true,
-			loc: true,
-			tokens: true
+			loc: true
 		});
 
 		this.detectInitCall();
@@ -63,12 +65,19 @@ Gruntfile.prototype =
 
 	/**
 	 * Detects invocation of method ```grunt.initConfig()```
+	 * @see [JSONPath](http://goessner.net/articles/JsonPath/)
 	 */
 	detectInitCall: function() {
-		var initCalls = this.findObject('', {
-			type: 'Identifier',
-			name: 'initConfig'
-		});
+		var	treeProperties = jsonpath(this.tree, '$..property'),
+			treePropertiesPath = jsonpath(this.tree, '$..property', { resultType: 'PATH' }),
+			initCalls = [];
+
+		for (var i = treeProperties.length, property; i--;) {
+			property = treeProperties[i];
+			if ( property.name === 'initConfig' ) {
+				initCalls.push([property, treePropertiesPath[i]]);
+			}
+		}
 
 		if ( !initCalls.length ) {
 			throw new Error('Invocation of initConfig() not found');
@@ -78,11 +87,13 @@ Gruntfile.prototype =
 			throw new Error('Too many invocations of initConfig()');
 		}
 
-		this.initCall = initCalls[0];
+		this._initCall = initCalls[0][0];
+		this._initCallPath = initCalls[0][1];
 	},
 
 	/**
-	 * Recursive search in AST
+	 * @ignore
+	 * Recursive search in AST (unused)
 	 * @param {String} [key] Key for search
 	 * @param {Object} [fields] Hash with fields for search
 	 */
@@ -97,7 +108,6 @@ Gruntfile.prototype =
 		}
 
 		_.each(tree, function(nestedValue, nestedKey) {
-			// Nested value is not object
 			if ( !_.isObject(nestedValue) ) {
 				return;
 			}
@@ -113,13 +123,13 @@ Gruntfile.prototype =
 				}
 
 				// Comparison with given fields
-				var finded = true;
+				var found = true;
 				_.each(fields, function(fieldValue, fieldKey) {
 					if ( nestedValue[fieldKey] !== fieldValue )
-						finded = false;
+						found = false;
 				});
 
-				if ( finded ) {
+				if ( found ) {
 					result.push(nestedValue);
 				} else {
 					this.findObject(key, fields, nestedValue, result);
