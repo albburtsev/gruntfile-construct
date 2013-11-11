@@ -1,6 +1,7 @@
 'use strict';
 
 var fs = require('fs'),
+	glob = require('glob'),
 	gfc = require('../gruntfile-construct'),
 	expect = require('chai').expect;
 
@@ -20,6 +21,7 @@ describe('Handling errors', function() {
 	});
 
 });
+
 
 describe('Correct parsing', function() {
 
@@ -62,6 +64,25 @@ describe('Correct parsing', function() {
 		expect(function() {
 			new gfc.Gruntfile('test/original/several.gruntinit.js');
 		}).to.throw(Error);
+	});
+
+});
+
+
+describe('Method removeTask()', function() {
+
+	it('Correct removing', function() {
+		var originalFiles = glob.sync('test/original/gruntfile.#*.js');
+
+		originalFiles.forEach(function(filename) {
+			var filenameExpected = filename
+					.replace('original', 'expected')
+					.replace('.js', '.remove.task.jshint.js'),
+				fileExpected = fs.readFileSync(filenameExpected, 'utf8'),
+				gruntfile = new gfc.Gruntfile(filename, { autosave: false });
+
+			expect(gruntfile.removeTask('jshint').buffer).to.equal(fileExpected);
+		});
 	});
 
 });

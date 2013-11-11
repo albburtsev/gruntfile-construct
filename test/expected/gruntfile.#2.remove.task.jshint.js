@@ -8,14 +8,8 @@ module.exports = function(grunt) {
 	/*
 	 * Multiline comment
 	 */
-	grunt.initConfig({
+	var config = {
 		// comment
-		jshint: {
-			options: {
-				jshintrc: '.jshintrc'
-			},
-			files: ['**/*.js'],
-		},
 
 		jscs: {
 			files: ['<%= jshint.files %>']
@@ -27,7 +21,9 @@ module.exports = function(grunt) {
 				tasks: ['jshint', 'jscs']
 			}
 		}
-	});
+	};
+
+	grunt.initConfig(config);
 
 	grunt.registerTask('default', ['jshint', 'jscs', 'watch']);
 };

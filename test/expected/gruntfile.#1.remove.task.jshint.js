@@ -10,12 +10,6 @@ module.exports = function(grunt) {
 	 */
 	grunt.initConfig({
 		// comment
-		jshint: {
-			options: {
-				jshintrc: '.jshintrc'
-			},
-			files: ['**/*.js'],
-		},
 
 		jscs: {
 			files: ['<%= jshint.files %>']

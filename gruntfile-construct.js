@@ -12,7 +12,9 @@ var	_ = require('lodash'),
 	path = require('path'),
 	esprima = require('esprima'),
 	escodegen = require('escodegen'),
-	traverse = require('ast-types').traverse;
+	types = require('ast-types'),
+	namedTypes = types.namedTypes,
+	traverse = types.traverse;
 
 /**
  * Entry point, main class for patching gruntfile
@@ -21,6 +23,7 @@ var	_ = require('lodash'),
  * @param {String} [filename=Gruntfile.js] Path to Gruntfile.js
  * @param {Object} [opts] Options
  * @param {String} [opts.output] Path to output
+ * @param {Boolean} [opts.autosave=true] Auto save after either changing
  */
 function Gruntfile(file, opts) {
 	file = file || this.defaultJS;
@@ -33,7 +36,10 @@ function Gruntfile(file, opts) {
 	_.extend(this, {
 		file: file,
 		source: fs.readFileSync(file, 'utf8'),
+		buffer: '',
 		output: null,
+		tasks: {},
+		autosave: true,
 
 		_initCall: null, // part of AST, JSON
 		_initCallPath: '',
@@ -41,8 +47,13 @@ function Gruntfile(file, opts) {
 		_configObjectPath: ''
 	}, opts || {});
 
+	this.buffer = this.source;
+
 	// Run esprima parser
 	this.parse();
+
+	// Fetch existing tasks
+	this.getTasks();
 }
 
 Gruntfile.prototype =
@@ -54,19 +65,86 @@ Gruntfile.prototype =
 	defaultCoffee: 'Gruntfile.coffee',
 
 	/**
-	 * Esprima parser of source grunt-file 
+	 * @ignore
 	 */
-	parse: function() {
-		this.tree = esprima.parse(this.source, {
-			comment: true,
-			loc: true
-		});
-
-		this.detectInitCall();
-		this.detectConfig();
+	strEscapeRegExp: function(str) {
+		return str.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");
 	},
 
 	/**
+	 * @ignore 
+	 */
+	strFindBefore: function(str, indexTo, terminator) {
+		indexTo = indexTo || 0;
+		terminator = terminator || '';
+		str = (str || '').substring(0, indexTo);
+
+		var re = new RegExp("(" + this.strEscapeRegExp(terminator) + "\\s+)$", 'gim'),
+			matched = str.match(re);
+
+		return matched ? matched[0].length : 0;
+	},
+
+	/**
+	 * @ignore
+	 */
+	strFindAfter: function(str, indexFrom, terminator) {
+		indexFrom = indexFrom || 0;
+		str = (str || '').substring(indexFrom);
+
+		var re = new RegExp("^(\\s*)" + this.strEscapeRegExp(terminator), 'gim'),
+			matched = str.match(re);
+
+		return matched ? matched[0].length : 0;
+	},
+
+	/**
+	 * Removes given task from config
+	 * @param {String} task Task name
+	 * @returns {Gruntfile} Returns Gruntfile object
+	 */
+	removeTask: function(task) {
+		var taskObj = task ? this.tasks[task] : null;
+
+		if ( !taskObj ) {
+			return this;
+		}
+
+		var	range = taskObj.node.range,
+			taskSubstr = this.source.substring(
+				range[0] - this.strFindBefore(this.source, range[0], '\n'),
+				range[1] + this.strFindAfter(this.source, range[1], ',')
+			);
+
+		// @todo: ugly and unsafe, fix replace in favor of positioned slice
+		this.buffer = this.source.replace(taskSubstr, '');
+
+		if ( this.autosave ) {
+			this.save();
+		}
+		
+		return this;
+	},
+
+	/**
+	 * @ignore
+	 * Get tasks from config object
+	 */
+	getTasks: function() {
+		if ( !namedTypes.ObjectExpression.check(this._configObject) ) {
+			throw new Error('Unknown type of config object');
+		}
+
+		_.each(this._configObject.properties, function(task, key) {
+			this.tasks[task.key.name] = {
+				node: task,
+				subtasks: []
+			};
+		}, this);
+	},
+
+	/**
+	 * @ignore
 	 * Detects invocation of method ```grunt.initConfig()``` (traversal AST)
 	 */
 	detectInitCall: function() {
@@ -91,6 +169,7 @@ Gruntfile.prototype =
 	},
 
 	/**
+	 * @ignore
 	 * Detects config object (traversal AST)
 	 */
 	detectConfig: function() {
@@ -103,24 +182,28 @@ Gruntfile.prototype =
 
 		var configObject = callExpression.arguments[0];
 
-		switch (configObject.type) {
-			case 'ObjectExpression':
-				// All right, do nothing
-				break;
+		// All right
+		if ( namedTypes.ObjectExpression.check(configObject) ) {
+			// Do nothing
 
-			case 'Identifier':
-				// @todo
-				break;
-
-			default:
-				throw new Error('Unknown type of config object');
-				break;
+		// Finds ObjectExpression for given Identifier
+		} else if ( namedTypes.Identifier.check(configObject) ) {
+			traverse(this.tree, function(node) {
+				if ( namedTypes.Identifier.check(node) && node.name === configObject.name ) {
+					var parentNode = this.parent.node;
+					if ( namedTypes.VariableDeclarator.check(parentNode) ) {
+						configObject = parentNode.init;
+						return false;
+					}
+				}
+			});
 		}
 
 		this._configObject = configObject;
 	},
 
 	/**
+	 * @ignore
 	 * Iterates parents for given path and returns needed
 	 * @param {Object} path Source path
 	 * @param {String} [parent] Type of needed parent
@@ -139,15 +222,28 @@ Gruntfile.prototype =
 	},
 
 	/**
+	 * @ignore
+	 * Esprima parser of source grunt-file 
+	 */
+	parse: function() {
+		this.tree = esprima.parse(this.source, {
+			comment: true,
+			range: true,
+			loc: true
+		});
+
+		this.detectInitCall();
+		this.detectConfig();
+	},
+
+	/**
+	 * @ignore
 	 * Saves injected grunt-file
 	 * @param {String} [output] Path to output
 	 */
 	save: function(output) {
 		output = output || this.output || this.file;
-
-		// @todo
-
-		fs.writeFileSync(output, code);
+		fs.writeFileSync(output, this.buffer);
 	}
 };
 
