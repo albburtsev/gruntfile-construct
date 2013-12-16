@@ -86,3 +86,21 @@ describe('Method removeTask()', function() {
 	});
 
 });
+
+describe('Method addTask()', function() {
+
+	it('Correct adding empty task', function() {
+		var originalFiles = glob.sync('test/original/gruntfile.#*.js');
+
+		originalFiles.forEach(function(filename) {
+			var filenameExpected = filename
+					.replace('original', 'expected')
+					.replace('.js', '.add.task.empty.js'),
+				fileExpected = fs.readFileSync(filenameExpected, 'utf8'),
+				gruntfile = new gfc.Gruntfile(filename, { autosave: false });
+
+			expect(gruntfile.addTask('empty').buffer).to.equal(fileExpected);
+		});
+	});
+
+});

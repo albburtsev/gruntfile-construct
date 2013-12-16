@@ -34,6 +34,7 @@
     "escodegen": "0.0.27",
     "esprima": "~1.0.4",
     "lodash": "~2.2.1",
-    "ast-types": "~0.3.8"
+    "ast-types": "~0.3.8",
+    "toSrc": "~0.1.3"
   }
 }

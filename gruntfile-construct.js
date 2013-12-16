@@ -9,7 +9,9 @@
 
 var	_ = require('lodash'),
 	fs = require('fs'),
+	str = require('./str'),
 	path = require('path'),
+	toSrc = require('toSrc'),
 	esprima = require('esprima'),
 	escodegen = require('escodegen'),
 	types = require('ast-types'),
@@ -65,37 +67,35 @@ Gruntfile.prototype =
 	defaultCoffee: 'Gruntfile.coffee',
 
 	/**
-	 * @ignore
+	 * Adds task if it not exist
+	 * @param {String} task Task name
+	 * @param {Object} [config] Task config
+	 * @returns {Gruntfile} Returns Gruntfile object
 	 */
-	strEscapeRegExp: function(str) {
-		return str.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");
-	},
+	addTask: function (task, config) {
+		if ( !_.isString(task) || this.tasks[task] ) {
+			return this;
+		}
 
-	/**
-	 * @ignore 
-	 */
-	strFindBefore: function(str, indexTo, terminator) {
-		indexTo = indexTo || 0;
-		terminator = terminator || '';
-		str = (str || '').substring(0, indexTo);
+		if ( !_.isString(config) ) {
+			config = toSrc(config);
+		}
+		config = '(' + config + ')';
 
-		var re = new RegExp("(" + this.strEscapeRegExp(terminator) + "\\s+)$", 'gim'),
-			matched = str.match(re);
+		// Config AST
+		var configTree = esprima.parse(config);
 
-		return matched ? matched[0].length : 0;
-	},
+		// Config regeneration
+		var configCode = escodegen.generate(configTree);
+		configCode = str.expressionCut(configCode);
 
-	/**
-	 * @ignore
-	 */
-	strFindAfter: function(str, indexFrom, terminator) {
-		indexFrom = indexFrom || 0;
-		str = (str || '').substring(indexFrom);
+		// @todo
 
-		var re = new RegExp("^(\\s*)" + this.strEscapeRegExp(terminator), 'gim'),
-			matched = str.match(re);
+		if ( this.autosave ) {
+			this.save();
+		}
 
-		return matched ? matched[0].length : 0;
+		return this;
 	},
 
 	/**
@@ -112,8 +112,8 @@ Gruntfile.prototype =
 
 		var	range = taskObj.node.range,
 			taskSubstr = this.source.substring(
-				range[0] - this.strFindBefore(this.source, range[0], '\n'),
-				range[1] + this.strFindAfter(this.source, range[1], ',')
+				range[0] - str.findBefore(this.source, range[0], '\n'),
+				range[1] + str.findAfter(this.source, range[1], ',')
 			);
 
 		// @todo: ugly and unsafe, fix replace in favor of positioned slice
