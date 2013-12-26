@@ -80,17 +80,32 @@ Gruntfile.prototype =
 		if ( !_.isString(config) ) {
 			config = toSrc(config);
 		}
-		config = '(' + config + ')';
 
-		// Config AST
-		var configTree = esprima.parse(config);
+		var configExpression = '(' + config + ')',
+			configTree, configCode;
 
-		// Config regeneration
-		var configCode = escodegen.generate(configTree);
-		configCode = str.expressionCut(configCode);
+		try {
+			// Config AST
+			configTree = esprima.parse(configExpression);
 
-		// @todo
+			// Config regeneration
+			configCode = escodegen.generate(configTree);
+			configCode = str.expressionCut(configCode);
+		} catch (e) {
+			configCode = config;
+		}
 
+		// Cover config
+		configCode = '\n' + task + ': ' + configCode + ',\n';
+
+		// Insert config with task in code
+		var configObjectLocStart = this._configObject.loc.start;
+		this.buffer = str.insertIn(this.buffer, {
+			line: configObjectLocStart.line,
+			column: configObjectLocStart.column + 2
+		}, configCode);
+
+		// Save results
 		if ( this.autosave ) {
 			this.save();
 		}
