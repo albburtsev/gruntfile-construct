@@ -1,6 +1,6 @@
 /**
  * Parser of gruntfiles, can be used for adding, deleting and updating grunt tasks
- * 
+ *
  * @author Alexander Burtsev
  * @license MIT
  */
@@ -22,7 +22,7 @@ var	_ = require('lodash'),
  * Entry point, main class for patching gruntfile
  * @class
  * @name Gruntfile
- * @param {String} [filename=Gruntfile.js] Path to Gruntfile.js
+ * @param {String} [file=Gruntfile.js] Path to Gruntfile.js
  * @param {Object} [opts] Options
  * @param {String} [opts.output] Path to output
  * @param {Boolean} [opts.autosave=true] Auto save after either changing
@@ -59,7 +59,7 @@ function Gruntfile(file, opts) {
 }
 
 Gruntfile.prototype =
-/** @lends Gruntfile.prototype */ 
+/** @lends Gruntfile.prototype */
 {
 	/** @property {String} defaultJS Default path to JavaScript grunt-file */
 	defaultJS: 'Gruntfile.js',
@@ -76,7 +76,7 @@ Gruntfile.prototype =
 		if ( !_.isString(task) || this.tasks[task] ) {
 			return this;
 		}
-		
+
 		if ( config === undefined ) {
 			config = {};
 		}
@@ -141,7 +141,7 @@ Gruntfile.prototype =
 		if ( this.autosave ) {
 			this.save();
 		}
-		
+
 		return this;
 	},
 
@@ -242,7 +242,7 @@ Gruntfile.prototype =
 
 	/**
 	 * @ignore
-	 * Esprima parser of source grunt-file 
+	 * Esprima parser of source grunt-file
 	 */
 	parse: function() {
 		this.tree = esprima.parse(this.source, {

@@ -10,5 +10,9 @@
 	"freeze": true,
 	"newcap": true,
 	"quotmark": "single",
-	"white": false
+	"white": false,
+	"globals": {
+		"describe": false,
+		"it": false
+	}
 }

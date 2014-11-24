@@ -4,7 +4,10 @@
   "description": "Parser of gruntfiles, can be used for adding, deleting and updating grunt tasks",
   "main": "gruntfile-construct.js",
   "scripts": {
-    "test": "mocha -R spec"
+    "jshint": "jshint --reporter node_modules/jshint-stylish/stylish.js *.js test/*.js",
+    "jscs": "jscs *.js test/*.js",
+    "mocha": "mocha --reporter spec",
+    "test": "npm run jshint && npm run jscs && npm run mocha"
   },
   "repository": {
     "type": "git",
@@ -22,13 +25,12 @@
   },
   "homepage": "https://github.com/albburtsev/gruntfile-construct",
   "devDependencies": {
-    "grunt-contrib-jshint": "~0.7.0",
-    "grunt-jscs-checker": "~0.2.2",
-    "grunt": "~0.4.1",
-    "matchdep": "~0.3.0",
-    "mocha": "~1.13.0",
     "chai": "~1.8.1",
-    "glob": "~3.2.7"
+    "glob": "~3.2.7",
+    "jscs": "~1.7.3",
+    "jshint": "~2.5.10",
+    "jshint-stylish": "~1.0.0",
+    "mocha": "~1.13.0"
   },
   "dependencies": {
     "escodegen": "0.0.27",

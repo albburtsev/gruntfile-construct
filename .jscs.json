@@ -5,14 +5,14 @@
 	"requireSpacesInsideObjectBrackets": "all",
 	"disallowQuotedKeysInObjects": true,
 	"disallowSpaceAfterObjectKeys": true,
-	"disallowLeftStickedOperators": ["?", "+", "-", "/", "*", "=", "==", "===", "!=", "!==", ">", ">=", "<", "<="],
-	"requireRightStickedOperators": ["!"],
-	"disallowRightStickedOperators": ["?", "+", "/", "*", ":", "=", "==", "===", "!=", "!==", ">", ">=", "<", "<="],
-	"requireLeftStickedOperators": [","],
+	"requireSpaceBeforeBinaryOperators": ["?", "+", "-", "/", "*", "=", "==", "===", "!=", "!==", ">", ">=", "<", "<="],
+	"disallowSpaceAfterBinaryOperators": ["!"],
+	"requireSpaceAfterBinaryOperators": ["?", "+", "/", "*", ":", "=", "==", "===", "!=", "!==", ">", ">=", "<", "<="],
+	"disallowSpaceBeforeBinaryOperators": [","],
 	"disallowKeywords": ["with", "eval"],
 	"validateJSDoc": {
-        "checkParamNames": true,
-        "checkRedundantParams": true,
-        "requireParamTypes": true
-    }
+		"checkParamNames": true,
+		"checkRedundantParams": true,
+		"requireParamTypes": true
+	}
 }
