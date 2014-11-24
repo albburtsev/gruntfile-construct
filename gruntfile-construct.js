@@ -76,6 +76,10 @@ Gruntfile.prototype =
 		if ( !_.isString(task) || this.tasks[task] ) {
 			return this;
 		}
+		
+		if ( config === undefined ) {
+			config = {};
+		}
 
 		if ( !_.isString(config) ) {
 			config = toSrc(config);

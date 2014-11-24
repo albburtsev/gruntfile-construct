@@ -9,7 +9,8 @@ module.exports = function(grunt) {
 	 * Multiline comment
 	 */
 	var config = {
-		empty: {},
+empty: {},
+
 		// comment
 		jshint: {
 			options: {
