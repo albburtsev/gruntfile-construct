@@ -11,12 +11,13 @@ var	_ = require('lodash'),
 	fs = require('fs'),
 	str = require('./str'),
 	path = require('path'),
-	toSrc = require('toSrc'),
+	stringifyObject = require('stringify-object'),
 	esprima = require('esprima'),
 	escodegen = require('escodegen'),
 	types = require('ast-types'),
 	namedTypes = types.namedTypes,
-	traverse = types.traverse;
+	traverse = types.traverse,
+	detectIndent = require('detect-indent');
 
 /**
  * Entry point, main class for patching gruntfile
@@ -51,6 +52,9 @@ function Gruntfile(file, opts) {
 
 	this.buffer = this.source;
 
+	// Detect source file indentation
+	this.indent = detectIndent(this.source).indent || '\t';
+
 	// Run esprima parser
 	this.parse();
 
@@ -82,7 +86,10 @@ Gruntfile.prototype =
 		}
 
 		if ( !_.isString(config) ) {
-			config = toSrc(config);
+			config = stringifyObject(config, {
+				indent: this.indent,
+				singleQuotes: true
+			});
 		}
 
 		var configExpression = '(' + config + ')',
@@ -93,7 +100,14 @@ Gruntfile.prototype =
 			configTree = esprima.parse(configExpression);
 
 			// Config regeneration
-			configCode = escodegen.generate(configTree);
+			configCode = escodegen.generate(configTree, {
+				format: {
+					indent: {
+						style: this.indent,
+						// base: 0,
+					}
+				}
+			});
 			configCode = str.expressionCut(configCode);
 		} catch (e) {
 			configCode = config;

@@ -49,7 +49,7 @@ describe('Correct parsing', function() {
 
 		expect(gruntfile._configObject).to.be.a('object');
 		expect(gruntfile._configObject.loc.start.line).to.equal(11);
-		
+
 		expect(gruntfile2._configObject).to.be.a('object');
 		expect(gruntfile2._configObject.loc.start.line).to.equal(11);
 	});
@@ -100,6 +100,30 @@ describe('Method addTask()', function() {
 				gruntfile = new gfc.Gruntfile(filename, { autosave: false });
 
 			expect(gruntfile.addTask('empty').buffer).to.equal(fileExpected);
+		});
+	});
+
+	it('Correct adding task', function() {
+		var originalFiles = glob.sync('test/original/gruntfile.#*.js');
+
+		originalFiles.forEach(function(filename) {
+			var filenameExpected = filename
+					.replace('original', 'expected')
+					.replace('.js', '.add.task.js'),
+				fileExpected = fs.readFileSync(filenameExpected, 'utf8'),
+				gruntfile = new gfc.Gruntfile(filename, { autosave: false });
+
+			var config = {
+				nonull: true,
+				src: [
+					'vendor/jquery.js',
+					'js/main.js'
+				],
+				dest: 'build/scripts.js'
+			};
+
+			gruntfile.addTask('concat', config);
+			expect(gruntfile.buffer).to.equal(fileExpected);
 		});
 	});
 
