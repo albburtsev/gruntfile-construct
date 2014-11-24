@@ -24,6 +24,9 @@
     "url": "https://github.com/albburtsev/gruntfile-construct/issues"
   },
   "homepage": "https://github.com/albburtsev/gruntfile-construct",
+  "engines": {
+    "node": ">=0.10.0"
+  },
   "devDependencies": {
     "chai": "~1.8.1",
     "glob": "~3.2.7",
