@@ -68,8 +68,6 @@ Gruntfile.prototype =
 {
 	/** @property {String} defaultJS Default path to JavaScript grunt-file */
 	defaultJS: 'Gruntfile.js',
-	/** @property {String} defaultCoffee Default path to CoffeeScript grunt-file */
-	defaultCoffee: 'Gruntfile.coffee',
 
 	/**
 	 * Adds task if it not exist
