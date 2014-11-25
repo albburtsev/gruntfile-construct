@@ -9,8 +9,6 @@ module.exports = function(grunt) {
 	 * Multiline comment
 	 */
 	grunt.initConfig({
-empty: {},
-
 		// comment
 		jshint: {
 			options: {
@@ -28,7 +26,9 @@ empty: {},
 				files: ['<%= jshint.files %>'],
 				tasks: ['jshint', 'jscs']
 			}
-		}
+		},
+
+		empty: {}
 	});
 
 	grunt.registerTask('default', ['jshint', 'jscs', 'watch']);

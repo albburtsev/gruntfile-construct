@@ -38,9 +38,10 @@
   "dependencies": {
     "ast-types": "~0.3.8",
     "detect-indent": "~3.0.0",
-    "escodegen": "~1.4.1",
-    "esprima": "~1.2.2",
     "lodash": "~2.2.1",
-    "stringify-object": "~1.0.0"
+    "rocambole": "~0.3.6",
+    "rocambole-token": "~1.2.1",
+    "stringify-object": "~1.0.0",
+    "underscore.string": "~2.4.0"
   }
 }

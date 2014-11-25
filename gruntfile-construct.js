@@ -8,12 +8,13 @@
 'use strict';
 
 var	_ = require('lodash'),
+	_str = require('underscore.string'),
 	fs = require('fs'),
 	str = require('./str'),
 	path = require('path'),
 	stringifyObject = require('stringify-object'),
-	esprima = require('esprima'),
-	escodegen = require('escodegen'),
+	rocambole = require('rocambole'),
+	tk = require('rocambole-token'),
 	types = require('ast-types'),
 	namedTypes = types.namedTypes,
 	traverse = types.traverse,
@@ -55,7 +56,7 @@ function Gruntfile(file, opts) {
 	// Detect source file indentation
 	this.indent = detectIndent(this.source).indent || '\t';
 
-	// Run esprima parser
+	// Run AST parser
 	this.parse();
 
 	// Fetch existing tasks
@@ -77,6 +78,9 @@ Gruntfile.prototype =
 	 * @returns {Gruntfile} Returns Gruntfile object
 	 */
 	addTask: function (task, config) {
+		// @todo Quote task name if needed.
+		// @todo Do not insert comma to empty properties list.
+
 		if ( !_.isString(task) || this.tasks[task] ) {
 			return this;
 		}
@@ -92,36 +96,26 @@ Gruntfile.prototype =
 			});
 		}
 
-		var configExpression = '(' + config + ')',
-			configTree, configCode;
+		var props = this._configObject.properties,
+			lastProp = props[props.length - 1];
 
-		try {
-			// Config AST
-			configTree = esprima.parse(configExpression);
+		// Indent block
+		var level = lastProp.endToken.loc.start.column,
+			blockIndent = _str.repeat(this.indent, level);
+		config = blockIndent + config.replace(/\n/g, '\n' + blockIndent);
 
-			// Config regeneration
-			configCode = escodegen.generate(configTree, {
-				format: {
-					indent: {
-						style: this.indent,
-						// base: 0,
-					}
-				}
-			});
-			configCode = str.expressionCut(configCode);
-		} catch (e) {
-			configCode = config;
-		}
+		var configExpression = '({' + task + ': ' + config + '})',  // @todo Simplify?
+			configTree = rocambole.parse(configExpression, {
+				loc: true
+			}),
+			newProp = configTree.body[0].expression.properties[0];
 
-		// Cover config
-		configCode = '\n' + task + ': ' + configCode + ',\n';
-
-		// Insert config with task in code
-		var configObjectLocStart = this._configObject.loc.start;
-		this.buffer = str.insertIn(this.buffer, {
-			line: configObjectLocStart.line,
-			column: configObjectLocStart.column + 2
-		}, configCode);
+		// Append new property
+		var prefix = {
+			value: ',\n\n' + blockIndent + task + ': '
+		};
+		tk.after(lastProp.endToken, prefix);
+		tk.after(prefix, newProp);
 
 		// Save results
 		if ( this.autosave ) {
@@ -256,17 +250,23 @@ Gruntfile.prototype =
 
 	/**
 	 * @ignore
-	 * Esprima parser of source grunt-file
+	 * AST parser of source grunt-file
 	 */
 	parse: function() {
-		this.tree = esprima.parse(this.source, {
-			comment: true,
-			range: true,
+		this.tree = rocambole.parse(this.source, {
 			loc: true
 		});
 
 		this.detectInitCall();
 		this.detectConfig();
+	},
+
+	/**
+	 * Returns modified source code.
+	 * @return {String}
+	 */
+	code: function() {
+		return this.tree.toString();
 	},
 
 	/**
@@ -276,7 +276,7 @@ Gruntfile.prototype =
 	 */
 	save: function(output) {
 		output = output || this.output || this.file;
-		fs.writeFileSync(output, this.buffer);
+		fs.writeFileSync(output, this.code());
 	}
 };
 

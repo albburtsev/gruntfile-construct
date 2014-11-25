@@ -99,7 +99,8 @@ describe('Method addTask()', function() {
 				fileExpected = fs.readFileSync(filenameExpected, 'utf8'),
 				gruntfile = new gfc.Gruntfile(filename, { autosave: false });
 
-			expect(gruntfile.addTask('empty').buffer).to.equal(fileExpected);
+			gruntfile.addTask('empty');
+			expect(gruntfile.code()).to.equal(fileExpected);
 		});
 	});
 
@@ -123,7 +124,7 @@ describe('Method addTask()', function() {
 			};
 
 			gruntfile.addTask('concat', config);
-			expect(gruntfile.buffer).to.equal(fileExpected);
+			expect(gruntfile.code()).to.equal(fileExpected);
 		});
 	});
 

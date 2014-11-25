@@ -9,15 +9,6 @@ module.exports = function(grunt) {
 	 * Multiline comment
 	 */
 	grunt.initConfig({
-concat: {
-	nonull: true,
-	src: [
-		'vendor/jquery.js',
-		'js/main.js'
-	],
-	dest: 'build/scripts.js'
-},
-
 		// comment
 		jshint: {
 			options: {
@@ -35,6 +26,15 @@ concat: {
 				files: ['<%= jshint.files %>'],
 				tasks: ['jshint', 'jscs']
 			}
+		},
+
+		concat: {
+			nonull: true,
+			src: [
+				'vendor/jquery.js',
+				'js/main.js'
+			],
+			dest: 'build/scripts.js'
 		}
 	});
 
