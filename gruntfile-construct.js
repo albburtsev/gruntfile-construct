@@ -152,6 +152,50 @@ Gruntfile.prototype =
 	},
 
 	/**
+	 * Registers a task: adds list of tasks to `grunt.registerTask` with specifiend task `name`.
+	 * @param {String} name Task name
+	 * @param {Array} tasks Taks list
+	 * @returns {Gruntfile} Returns Gruntfile object
+	 */
+	registerTask: function(name, tasks) {
+		if ( !_.isArray(tasks) ) {
+			tasks = [tasks];
+		}
+
+		var expression;
+		visit(this.tree, {
+			visitMemberExpression: function(path) {
+				var node = path.node;
+				if ( node.object.name === 'grunt' && node.property.name === 'registerTask' &&
+						node.parent.arguments && node.parent.arguments[0].value === name ) {
+					expression = node.parent;
+				}
+				this.traverse(path);
+			}
+		});
+
+		if (expression) {
+			// Task group already exists
+			var list = expression.arguments[1];
+			if ( !list ) {
+				throw new Error('grunt.registerTask requires second argument');
+			}
+			list = list.elements;
+
+			// Append new items
+			var quote = this.detectQuoteStyle(list[0]),
+				items = _.map(tasks, str.quote.bind(str, quote)),
+				newToken = {
+					value: ', ' + items.join(', ')
+				};
+			tk.after(list[list.length - 1].endToken, newToken);
+		}
+		else {
+			// @todo
+		}
+	},
+
+	/**
 	 * @ignore
 	 * Get tasks from config object
 	 */
@@ -251,6 +295,10 @@ Gruntfile.prototype =
 				return path;
 			}
 		}
+	},
+
+	detectQuoteStyle: function(node) {
+		return node.startToken.value.charAt(0);
 	},
 
 	/**
