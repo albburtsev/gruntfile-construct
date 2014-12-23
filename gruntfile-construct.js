@@ -17,7 +17,7 @@ var	_ = require('lodash'),
 	tk = require('rocambole-token'),
 	types = require('ast-types'),
 	namedTypes = types.namedTypes,
-	traverse = types.traverse,
+	visit = types.visit,
 	detectIndent = require('detect-indent');
 
 /**
@@ -175,9 +175,13 @@ Gruntfile.prototype =
 	detectInitCall: function() {
 		var initCalls = [];
 
-		traverse(this.tree, function(node) {
-			if ( node.name === 'initConfig' ) {
-				initCalls.push([node, this]);
+		visit(this.tree, {
+			visitMemberExpression: function(path) {
+				var node = path.node;
+				if ( ( node.object.name === 'grunt' ) && ( node.property.name === 'initConfig' ) ) {
+					initCalls.push([node, path]);
+				}
+				this.traverse(path);
 			}
 		});
 
@@ -213,13 +217,16 @@ Gruntfile.prototype =
 
 		// Finds ObjectExpression for given Identifier
 		} else if ( namedTypes.Identifier.check(configObject) ) {
-			traverse(this.tree, function(node) {
-				if ( namedTypes.Identifier.check(node) && node.name === configObject.name ) {
-					var parentNode = this.parent.node;
-					if ( namedTypes.VariableDeclarator.check(parentNode) ) {
-						configObject = parentNode.init;
-						return false;
+			visit(this.tree, {
+				visitIdentifier: function(path) {
+					var node = path.node;
+					if ( node.name === configObject.name ) {
+						if ( namedTypes.VariableDeclarator.check(node.parent) ) {
+							configObject = node.parent.init;
+							return false;
+						}
 					}
+					this.traverse(path);
 				}
 			});
 		}

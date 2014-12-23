@@ -36,7 +36,7 @@
     "mocha": "~1.13.0"
   },
   "dependencies": {
-    "ast-types": "~0.3.8",
+    "ast-types": "~0.6.7",
     "detect-indent": "~3.0.0",
     "lodash": "~2.2.1",
     "rocambole": "~0.3.6",
