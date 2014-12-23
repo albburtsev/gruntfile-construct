@@ -182,6 +182,17 @@ Gruntfile.prototype =
 			}
 			list = list.elements;
 
+			// Filter already existent items
+			var existentTasks = _.map(list, 'value');
+			tasks = _.filter(tasks, function(taskName) {
+				return existentTasks.indexOf(taskName) === -1;
+			});
+
+			if ( !tasks.length ) {
+				// All tasks already existent
+				return this;
+			}
+
 			// Append new items
 			var quote = this.detectQuoteStyle(list[0]),
 				items = _.map(tasks, str.quote.bind(str, quote)),
@@ -193,6 +204,8 @@ Gruntfile.prototype =
 		else {
 			// @todo
 		}
+
+		return this;
 	},
 
 	/**
