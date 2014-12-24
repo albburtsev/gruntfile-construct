@@ -207,6 +207,10 @@ Gruntfile.prototype =
 			// @todo
 		}
 
+		if ( this.autosave ) {
+			this.save();
+		}
+
 		this.reparse();
 		return this;
 	},
