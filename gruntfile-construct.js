@@ -26,7 +26,7 @@ var	_ = require('lodash'),
  * @name Gruntfile
  * @param {String} [file=Gruntfile.js] Path to Gruntfile.js
  * @param {Object} [opts] Options
- * @param {String} [opts.output] Path to output
+ * @param {String} [opts.dest] Path to output file
  * @param {Boolean} [opts.autosave=true] Auto save after either changing
  */
 function Gruntfile(file, opts) {
@@ -41,7 +41,7 @@ function Gruntfile(file, opts) {
 		file: file,
 		source: fs.readFileSync(file, 'utf8'),
 		buffer: '',
-		output: null,
+		dest: null,
 		tasks: {},
 		autosave: true,
 
@@ -328,11 +328,11 @@ Gruntfile.prototype =
 
 	/**
 	 * Saves injected grunt-file
-	 * @param {String} [output] Path to output
+	 * @param {String} [dest] Path to output file
 	 */
-	save: function(output) {
-		output = output || this.output || this.file;
-		fs.writeFileSync(output, this.code());
+	save: function(dest) {
+		dest = dest || this.dest || this.file;
+		fs.writeFileSync(dest, this.code());
 	}
 };
 
