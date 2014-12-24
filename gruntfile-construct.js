@@ -352,7 +352,6 @@ Gruntfile.prototype =
 	},
 
 	/**
-	 * @ignore
 	 * Saves injected grunt-file
 	 * @param {String} [output] Path to output
 	 */
