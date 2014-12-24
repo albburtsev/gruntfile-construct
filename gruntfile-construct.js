@@ -136,17 +136,18 @@ Gruntfile.prototype =
 			return this;
 		}
 
-		var	range = taskObj.node.range,
-			taskSubstr = this.source.substring(
-				range[0] - str.findBefore(this.source, range[0], '\n'),
-				range[1] + str.findAfter(this.source, range[1], ',')
-			);
+		// We also need to remove extra whitespace and comma
+		var next = taskObj.node.endToken.next;
+		while ( next.type === 'Punctuator' || next.type === 'LineBreak' || next.type === 'WhiteSpace' ) {
+			next = next.next;
+		}
+		var end = next.prev;
 
-		// @todo: ugly and unsafe, fix replace in favor of positioned slice
-		this.buffer = this.source.replace(taskSubstr, '');
+		// Remove everything
+		tk.eachInBetween(taskObj.node.startToken, end, tk.remove);
 
 		if ( this.autosave ) {
-			this.save();
+			// this.save();
 		}
 
 		this.reparse();

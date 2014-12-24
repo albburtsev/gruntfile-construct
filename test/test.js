@@ -81,7 +81,9 @@ describe('Method removeTask()', function() {
 				fileExpected = fs.readFileSync(filenameExpected, 'utf8'),
 				gruntfile = new gfc.Gruntfile(filename, { autosave: false });
 
-			expect(gruntfile.removeTask('jshint').buffer).to.equal(fileExpected);
+			gruntfile.removeTask('jshint');
+
+			expect(gruntfile.code()).to.equal(fileExpected);
 		});
 	});
 

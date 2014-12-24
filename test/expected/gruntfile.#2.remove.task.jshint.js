@@ -10,7 +10,6 @@ module.exports = function(grunt) {
 	 */
 	var config = {
 		// comment
-
 		jscs: {
 			files: ['<%= jshint.files %>']
 		},
