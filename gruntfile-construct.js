@@ -10,7 +10,7 @@
 var	_ = require('lodash'),
 	_str = require('underscore.string'),
 	fs = require('fs'),
-	str = require('./str'),
+	util = require('./util'),
 	path = require('path'),
 	stringifyObject = require('stringify-object'),
 	rocambole = require('rocambole'),
@@ -198,7 +198,7 @@ Gruntfile.prototype =
 
 			// Append new items
 			var quote = this.detectQuoteStyle(list[0]),
-				items = _.map(tasks, str.quote.bind(str, quote)),
+				items = _.map(tasks, util.quote.bind(util, quote)),
 				newToken = {
 					value: ', ' + items.join(', ')
 				};
