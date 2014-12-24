@@ -45,10 +45,8 @@ function Gruntfile(file, opts) {
 		tasks: {},
 		autosave: true,
 
-		_initCall: null, // part of AST, JSON
-		_initCallPath: '',
+		_initCallPath: null,
 		_configObject: null, // part of AST, JSON
-		_configObjectPath: ''
 	}, opts || {});
 
 	this.buffer = this.source;
@@ -244,7 +242,7 @@ Gruntfile.prototype =
 			visitMemberExpression: function(path) {
 				var node = path.node;
 				if ( ( node.object.name === 'grunt' ) && ( node.property.name === 'initConfig' ) ) {
-					initCalls.push([node, path]);
+					initCalls.push(path);
 				}
 				this.traverse(path);
 			}
@@ -258,8 +256,7 @@ Gruntfile.prototype =
 			throw new Error('Too many invocations of initConfig()');
 		}
 
-		this._initCall = initCalls[0][0];
-		this._initCallPath = initCalls[0][1];
+		this._initCallPath = initCalls[0];
 	},
 
 	/**

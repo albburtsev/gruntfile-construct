@@ -38,9 +38,9 @@ describe('Correct parsing', function() {
 	it('Traversal: detect initConfig() call', function() {
 		var gruntfile = new gfc.Gruntfile('test/original/gruntfile.#1.js');
 
-		expect(gruntfile._initCall).to.be.a('object');
 		expect(gruntfile._initCallPath).to.be.a('object');
-		expect(gruntfile._initCall.loc.start.line).to.equal(11);
+		expect(gruntfile._initCallPath.value).to.be.a('object');
+		expect(gruntfile._initCallPath.value.loc.start.line).to.equal(11);
 	});
 
 	it('Traversal: detect config object', function() {
