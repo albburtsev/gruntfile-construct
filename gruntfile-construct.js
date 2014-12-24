@@ -197,7 +197,7 @@ Gruntfile.prototype =
 			}
 
 			// Append new items
-			var quote = this.detectQuoteStyle(list[0]),
+			var quote = util.detectQuoteStyle(list[0]),
 				items = _.map(tasks, util.quote.bind(util, quote)),
 				newToken = {
 					value: ', ' + items.join(', ')
@@ -267,7 +267,7 @@ Gruntfile.prototype =
 	 * Detects config object (traversal AST)
 	 */
 	detectConfig: function() {
-		var callExpressionPath = this.parentPath(this._initCallPath, 'CallExpression'),
+		var callExpressionPath = util.parentPath(this._initCallPath, 'CallExpression'),
 			callExpression = callExpressionPath.node;
 
 		if ( !callExpression.arguments || !callExpression.arguments.length ) {
@@ -297,33 +297,6 @@ Gruntfile.prototype =
 		}
 
 		this._configObject = configObject;
-	},
-
-	/**
-	 * @ignore
-	 * Iterates parents for given path and returns needed
-	 * @param {Object} path Source path
-	 * @param {String} [parent] Type of needed parent
-	 */
-	parentPath: function(path, parent) {
-		if ( !parent ) {
-			return path.parent;
-		}
-
-		while (path.parent) {
-			path = path.parent;
-			if ( path.node.type === parent ) {
-				return path;
-			}
-		}
-	},
-
-	/**
-	 * @ignore
-	 * Detects quotes style (" or ') used in a node
-	 */
-	detectQuoteStyle: function(node) {
-		return node.startToken.value.charAt(0);
 	},
 
 	/**
