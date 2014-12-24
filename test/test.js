@@ -129,3 +129,23 @@ describe('Method addTask()', function() {
 	});
 
 });
+
+describe('Method registerTask()', function() {
+
+	it('Correctly adding task to alias', function() {
+		var originalFiles = glob.sync('test/original/gruntfile.#*.js');
+
+		originalFiles.forEach(function(filename) {
+			var filenameExpected = filename
+					.replace('original', 'expected')
+					.replace('.js', '.register.task.js'),
+				fileExpected = fs.readFileSync(filenameExpected, 'utf8'),
+				gruntfile = new gfc.Gruntfile(filename, { autosave: false });
+
+			gruntfile.registerTask('default', ['one', 'two']);
+			gruntfile.registerTask('default', 'three');
+			expect(gruntfile.code()).to.equal(fileExpected);
+		});
+	});
+
+});
