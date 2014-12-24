@@ -120,6 +120,7 @@ Gruntfile.prototype =
 			this.save();
 		}
 
+		this.reparse();
 		return this;
 	},
 
@@ -148,6 +149,7 @@ Gruntfile.prototype =
 			this.save();
 		}
 
+		this.reparse();
 		return this;
 	},
 
@@ -205,6 +207,7 @@ Gruntfile.prototype =
 			// @todo
 		}
 
+		this.reparse();
 		return this;
 	},
 
@@ -310,6 +313,10 @@ Gruntfile.prototype =
 		}
 	},
 
+	/**
+	 * @ignore
+	 * Detects quotes style (" or ') used in a node
+	 */
 	detectQuoteStyle: function(node) {
 		return node.startToken.value.charAt(0);
 	},
@@ -325,6 +332,15 @@ Gruntfile.prototype =
 
 		this.detectInitCall();
 		this.detectConfig();
+	},
+
+	/**
+	 * @ignore
+	 * Regenerates AST from modified source code
+	 */
+	reparse: function() {
+		this.source = this.code();
+		this.parse();
 	},
 
 	/**
