@@ -177,30 +177,41 @@ Gruntfile.prototype =
 
 		if (expression) {
 			// Task group already exists
-			var list = expression.arguments[1];
-			if ( !list ) {
+			var listExpression = expression.arguments[1];
+			if ( !listExpression ) {
 				throw new Error('grunt.registerTask requires second argument');
 			}
-			list = list.elements;
+			var list = listExpression.elements;
 
-			// Filter already existent items
-			var existentTasks = _.map(list, 'value');
-			tasks = _.filter(tasks, function(taskName) {
-				return existentTasks.indexOf(taskName) === -1;
-			});
+			var items, newToken;
+			if ( list.length ) {
+				// Filter already existent items
+				var existentTasks = _.map(list, 'value');
+				tasks = _.filter(tasks, function(taskName) {
+					return existentTasks.indexOf(taskName) === -1;
+				});
 
-			if ( !tasks.length ) {
-				// All tasks already existent
-				return this;
-			}
+				if ( !tasks.length ) {
+					// All tasks already existent
+					return this;
+				}
 
-			// Append new items
-			var quote = util.detectQuoteStyle(list[0]),
-				items = _.map(tasks, util.quote.bind(util, quote)),
+				// Append new items
+				var quote = util.detectQuoteStyle(list[0]);
+				items = _.map(tasks, util.quote.bind(util, quote));
 				newToken = {
 					value: ', ' + items.join(', ')
 				};
-			tk.after(list[list.length - 1].endToken, newToken);
+				tk.after(list[list.length - 1].endToken, newToken);
+			}
+			else {
+				// @todo Try to detect quotes somewhere else in a file.
+				items = _.map(tasks, util.quote.bind(util, '\''));
+				newToken = {
+					value: items.join(', ')
+				};
+				tk.before(listExpression.endToken, newToken);
+			}
 		}
 		else {
 			// @todo

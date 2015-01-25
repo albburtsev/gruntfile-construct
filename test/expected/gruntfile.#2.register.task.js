@@ -31,5 +31,5 @@ module.exports = function(grunt) {
 
 	grunt.initConfig(config);
 
-	grunt.registerTask('default', ['jshint', 'jscs', 'watch', 'one', 'two', 'three']);
+	grunt.registerTask('default', ['one', 'two', 'three']);
 };
