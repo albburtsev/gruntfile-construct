@@ -27,38 +27,29 @@ var	_ = require('lodash'),
  * @param {String} [file=Gruntfile.js] Path to Gruntfile.js
  * @param {Object} [opts] Options
  * @param {String} [opts.dest] Path to output file
+ * @param {String} [opts.source] Gruntfile code (won’t read it from a file)
  * @param {Boolean} [opts.autosave=true] Auto save after either changing
  */
 function Gruntfile(file, opts) {
-	file = file || this.defaultJS;
-
-	if ( !fs.existsSync(file) ) {
-		throw new Error('File does not exists');
+	// Options as a first argument
+	if ( _.isObject(file) ) {
+		opts = file;
+		file = null;
 	}
 
-	// Merge options
+	file = file || this.defaultJS;
+
+	opts = opts || {};
 	_.extend(this, {
+		source: null,
 		file: file,
-		source: fs.readFileSync(file, 'utf8'),
-		buffer: '',
-		dest: null,
-		tasks: {},
-		autosave: true,
+		dest: file,
+		autosave: !opts.source
+	}, opts);
 
-		_initCallPath: null,
-		_configObject: null, // part of AST, JSON
-	}, opts || {});
-
-	this.buffer = this.source;
-
-	// Detect source file indentation
-	this.indent = detectIndent(this.source).indent || '\t';
-
-	// Run AST parser
+	this.readSource();
+	this.detectCodeStyle();
 	this.parse();
-
-	// Fetch existing tasks
-	this.getTasks();
 }
 
 Gruntfile.prototype =
@@ -145,7 +136,7 @@ Gruntfile.prototype =
 		tk.eachInBetween(taskObj.node.startToken, end, tk.remove);
 
 		if ( this.autosave ) {
-			// this.save();
+			this.save();
 		}
 
 		this.reparse();
@@ -229,11 +220,12 @@ Gruntfile.prototype =
 	 * @ignore
 	 * Get tasks from config object
 	 */
-	getTasks: function() {
+	findTasks: function() {
 		if ( !namedTypes.ObjectExpression.check(this._configObject) ) {
 			throw new Error('Unknown type of config object');
 		}
 
+		this.tasks = {};
 		_.each(this._configObject.properties, function(task, key) {
 			this.tasks[task.key.name] = {
 				node: task,
@@ -309,6 +301,24 @@ Gruntfile.prototype =
 
 	/**
 	 * @ignore
+	 * Reads source gruntfile
+	 */
+	readSource: function() {
+		if ( !this.source ) {
+			this.source = fs.readFileSync(this.file, 'utf8');
+		}
+	},
+
+	/**
+	 * @ignore
+	 * Detects code style of the source file.
+	 */
+	detectCodeStyle: function() {
+		this.indent = detectIndent(this.source).indent || '\t';
+	},
+
+	/**
+	 * @ignore
 	 * AST parser of source grunt-file
 	 */
 	parse: function() {
@@ -318,6 +328,7 @@ Gruntfile.prototype =
 
 		this.detectInitCall();
 		this.detectConfig();
+		this.findTasks();
 	},
 
 	/**
@@ -342,7 +353,7 @@ Gruntfile.prototype =
 	 * @param {String} [dest] Path to output file
 	 */
 	save: function(dest) {
-		dest = dest || this.dest || this.file;
+		dest = dest || this.dest;
 		fs.writeFileSync(dest, this.code());
 	}
 };

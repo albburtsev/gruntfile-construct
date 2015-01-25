@@ -30,8 +30,7 @@ describe('Correct parsing', function() {
 
 		expect(gruntfile.file).to.be.a('string');
 		expect(gruntfile.source).to.be.a('string');
-		expect(gruntfile.tree).to.be.a('object');
-		expect(gruntfile.tree).to.be.a('object');
+		expect(gruntfile.tree).to.be.an('object');
 		expect(gruntfile.tree).to.have.property('type', 'Program');
 	});
 
@@ -66,6 +65,19 @@ describe('Correct parsing', function() {
 		}).to.throw(Error);
 	});
 
+	it('Gruntfile from a string', function() {
+		var source = fs.readFileSync('test/original/gruntfile.#1.js', 'utf8'),
+			gruntfile;
+
+		expect(function() {
+			gruntfile = new gfc.Gruntfile({ source: source });
+		}).to.not.throw(Error);
+
+		expect(gruntfile.source).to.be.a('string');
+		expect(gruntfile.tree).to.be.an('object');
+		expect(gruntfile.tree).to.have.property('type', 'Program');
+	});
+
 });
 
 
@@ -85,6 +97,15 @@ describe('Method removeTask()', function() {
 
 			expect(gruntfile.code()).to.equal(fileExpected);
 		});
+	});
+
+	it('Correct removing: in memory', function() {
+		var gruntfile = new gfc.Gruntfile({ source: fs.readFileSync('test/original/gruntfile.#1.js', 'utf8') }),
+			fileExpected = fs.readFileSync('test/expected/gruntfile.#1.remove.task.jshint.js', 'utf8');
+
+		gruntfile.removeTask('jshint');
+
+		expect(gruntfile.code()).to.equal(fileExpected);
 	});
 
 });
@@ -130,6 +151,15 @@ describe('Method addTask()', function() {
 		});
 	});
 
+	it('Correct adding empty task: in memory', function() {
+		var gruntfile = new gfc.Gruntfile({ source: fs.readFileSync('test/original/gruntfile.#1.js', 'utf8') }),
+			fileExpected = fs.readFileSync('test/expected/gruntfile.#1.add.task.empty.js', 'utf8');
+
+		gruntfile.addTask('empty');
+
+		expect(gruntfile.code()).to.equal(fileExpected);
+	});
+
 });
 
 describe('Method registerTask()', function() {
@@ -148,6 +178,16 @@ describe('Method registerTask()', function() {
 			gruntfile.registerTask('default', 'three');
 			expect(gruntfile.code()).to.equal(fileExpected);
 		});
+	});
+
+	it('Correct adding task to alias: in memory', function() {
+		var gruntfile = new gfc.Gruntfile({ source: fs.readFileSync('test/original/gruntfile.#1.js', 'utf8') }),
+			fileExpected = fs.readFileSync('test/expected/gruntfile.#1.register.task.js', 'utf8');
+
+		gruntfile.registerTask('default', ['one', 'two']);
+		gruntfile.registerTask('default', 'three');
+
+		expect(gruntfile.code()).to.equal(fileExpected);
 	});
 
 });
